@@ -63,27 +63,6 @@
     margin-top: 0.4em;
   }
 
-  /* ── 落款(らっかん)風の印 ─────────────── */
-  .seal {
-    position: fixed;
-    right: 30px;
-    bottom: 110px;
-    width: 30px;
-    height: 30px;
-    background: #b0342b;
-    color: #f4efe5;
-    writing-mode: vertical-rl;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    opacity: 0.85;
-    pointer-events: none;
-    z-index: 10;
-  }
-
   /* ── 手引き ─────────────────────────────── */
   .hint {
     position: fixed;
@@ -105,17 +84,14 @@
   .tray {
     position: fixed;
     left: 50%;
-    bottom: 22px;
+    bottom: 30px;
     transform: translateX(-50%);
     display: flex;
     align-items: flex-end;
     gap: clamp(10px, 2.4vw, 22px);
-    padding: 12px 22px 10px;
-    background: rgba(244, 239, 229, 0.6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(43, 43, 43, 0.14);
-    border-radius: 4px;
+    padding: 0;
+    background: transparent;
+    border: 0;
     z-index: 20;
   }
   .color-btn {
@@ -201,8 +177,6 @@
     <h1>墨流し</h1>
     <div class="sub">― いろは、みずにとける ―</div>
   </div>
-
-  <div class="seal">墨</div>
 
   <div class="hint" id="hint">いろをえらび<br>みずに ふれてください</div>
 

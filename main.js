@@ -18,15 +18,15 @@ const config = {
   SIM_RESOLUTION: 160,      // 速度場の解像度(片側)
   DYE_RESOLUTION: 1024,     // 墨の解像度(片側)
   DENSITY_DISSIPATION: 0.1,  // 墨の消えにくさ(小さいほど残る)
-  VELOCITY_DISSIPATION: 0.68, // 水の粘り(大きいほどすぐ止まる)
+  VELOCITY_DISSIPATION: 0.82, // 水の粘り(大きいほどすぐ止まる)
   PRESSURE: 0.8,
   PRESSURE_ITERATIONS: 24,
-  CURL: 8,                   // 渦の強さ
+  CURL: 3,                   // 渦の強さ
   BLEED: 0.32,               // にじみ(毎フレームの拡散率 0..1)
   SPLAT_RADIUS: 0.0022,      // ドラッグ時の筆先の太さ
   DROP_RADIUS: 0.0042,       // 一滴の大きさ
-  SPLAT_FORCE: 2200,         // ドラッグで水を押す力
-  INK_FLOW: 0.2,             // ドラッグ中に出る墨の濃さ
+  SPLAT_FORCE: 900,          // ドラッグで水を押す力
+  INK_FLOW: 0.18,            // ドラッグ中に出る墨の濃さ
   DROP_INK: 0.44,            // 一滴の濃さ
   SOAK_INK: 0.35,            // 押さえたまま動かさない時、毎秒とけ出す墨
   AMBIENT_STIR: true,        // 水面がかすかに揺らぐ
@@ -723,11 +723,11 @@ function drop(x, y, color, scale = 1) {
   splatInk(x, y, color, config.DROP_INK * scale, config.DROP_RADIUS * scale);
   addRipple(x, y, scale);
   const angle = Math.random() * Math.PI * 2;
-  const off = 0.006;
-  const force = (18 + Math.random() * 14) * scale;
+  const off = 0.0035;
+  const force = (6 + Math.random() * 5) * scale;
   const ox = Math.cos(angle) * off;
   const oy = Math.sin(angle) * off;
-  const r = config.DROP_RADIUS * 1.25;
+  const r = config.DROP_RADIUS * 0.9;
   splatVelocity(x + ox, y + oy, -Math.sin(angle) * force, Math.cos(angle) * force, r);
   splatVelocity(x - ox, y - oy, Math.sin(angle) * force, -Math.cos(angle) * force, r);
 }
@@ -922,9 +922,9 @@ function update(now) {
       splatVelocity(
         0.15 + Math.random() * 0.7,
         0.15 + Math.random() * 0.7,
-        Math.cos(angle) * 25,
-        Math.sin(angle) * 25,
-        0.012
+        Math.cos(angle) * 8,
+        Math.sin(angle) * 8,
+        0.008
       );
     }
   }
