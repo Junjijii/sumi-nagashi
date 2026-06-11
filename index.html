@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>墨流し — sumi-nagashi</title>
+<meta name="description" content="いろをえらんで、みずにふれる。墨が水にとけていく和風インタラクティブアート。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500&family=Zen+Kurenaido&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f4efe5;
+    --ink: #2b2b2b;
+    --ink-soft: rgba(43, 43, 43, 0.55);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+    font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+    color: var(--ink);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+  }
+
+  canvas#water {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+  }
+
+  /* ── 縦書きの題字 ───────────────────────── */
+  .title {
+    position: fixed;
+    top: 28px;
+    right: 26px;
+    writing-mode: vertical-rl;
+    pointer-events: none;
+    z-index: 10;
+    line-height: 1;
+  }
+  .title h1 {
+    font-size: clamp(28px, 4.2vmin, 44px);
+    font-weight: 500;
+    letter-spacing: 0.45em;
+    color: var(--ink);
+    text-shadow: 0 0 14px rgba(244, 239, 229, 0.9);
+  }
+  .title .sub {
+    font-size: clamp(10px, 1.4vmin, 13px);
+    letter-spacing: 0.35em;
+    color: var(--ink-soft);
+    margin-right: 0.9em;
+    margin-top: 0.4em;
+  }
+
+  /* ── 落款(らっかん)風の印 ─────────────── */
+  .seal {
+    position: fixed;
+    right: 30px;
+    bottom: 110px;
+    width: 30px;
+    height: 30px;
+    background: #b0342b;
+    color: #f4efe5;
+    writing-mode: vertical-rl;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* ── 手引き ─────────────────────────────── */
+  .hint {
+    position: fixed;
+    left: 50%;
+    top: 44%;
+    transform: translate(-50%, -50%);
+    writing-mode: vertical-rl;
+    font-size: clamp(13px, 2vmin, 17px);
+    letter-spacing: 0.5em;
+    line-height: 2.6;
+    color: var(--ink-soft);
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 2.4s ease;
+  }
+  .hint.hidden { opacity: 0; }
+
+  /* ── 色の盆(パレット)───────────────────── */
+  .tray {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(10px, 2.4vw, 22px);
+    padding: 12px 22px 10px;
+    background: rgba(244, 239, 229, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(43, 43, 43, 0.14);
+    border-radius: 4px;
+    z-index: 20;
+  }
+  .color-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .color-btn .dot {
+    width: clamp(22px, 4.4vmin, 30px);
+    height: clamp(22px, 4.4vmin, 30px);
+    border-radius: 50%;
+    border: 1px solid rgba(43, 43, 43, 0.25);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .color-btn .name {
+    font-size: clamp(9px, 1.3vmin, 12px);
+    letter-spacing: 0.18em;
+    color: var(--ink-soft);
+    transition: color 0.25s ease;
+    white-space: nowrap;
+  }
+  .color-btn.active .dot {
+    transform: scale(1.22) translateY(-2px);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(244, 239, 229, 0.9), 0 0 0 4px rgba(43, 43, 43, 0.55);
+  }
+  .color-btn.active .name { color: var(--ink); }
+  @media (hover: hover) {
+    .color-btn:hover .dot { transform: scale(1.12); }
+  }
+
+  /* ── 水を替えるボタン ───────────────────── */
+  .reset-btn {
+    position: fixed;
+    left: 24px;
+    top: 24px;
+    writing-mode: vertical-rl;
+    font-family: inherit;
+    font-size: clamp(12px, 1.7vmin, 15px);
+    letter-spacing: 0.4em;
+    padding: 16px 9px 10px;
+    color: var(--ink-soft);
+    background: rgba(244, 239, 229, 0.55);
+    border: 1px solid rgba(43, 43, 43, 0.22);
+    border-radius: 3px;
+    cursor: pointer;
+    z-index: 20;
+    transition: color 0.3s ease, border-color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .reset-btn:hover, .reset-btn:active {
+    color: var(--ink);
+    border-color: rgba(43, 43, 43, 0.5);
+  }
+
+  /* WebGL 非対応のとき */
+  .no-webgl {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 2.2;
+    letter-spacing: 0.2em;
+    padding: 2em;
+    z-index: 50;
+    background: var(--paper);
+  }
+</style>
+</head>
+<body>
+
+  <canvas id="water"></canvas>
+
+  <div class="title">
+    <h1>墨流し</h1>
+    <div class="sub">― いろは、みずにとける ―</div>
+  </div>
+
+  <div class="seal">墨</div>
+
+  <div class="hint" id="hint">いろをえらび<br>みずに ふれてください</div>
+
+  <button class="reset-btn" id="reset" type="button">水を替える</button>
+
+  <nav class="tray" id="tray" aria-label="色を選ぶ"></nav>
+
+  <div class="no-webgl" id="noWebgl">
+    申し訳ありません。<br>
+    お使いのブラウザでは WebGL が利用できないため、<br>
+    水面を映すことができません。
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
